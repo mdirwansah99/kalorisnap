@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Ambil gambar makanan, terus tahu kalori, protein, karbo dan lemak. Log harian vs sasaran. Offline, tiada akaun.">
+<meta name="theme-color" content="#0b0c10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KaloriSnap">
+<title>KaloriSnap — Snap. Kira. Diet.</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ══════════ LOCK ══════════ -->
+<div id="lock" class="lock" hidden>
+  <div class="lock-card">
+    <div class="brand-mark">🍽</div>
+    <h1 class="brand">KaloriSnap</h1>
+    <p class="lock-sub" id="lock-sub">Masukkan password</p>
+
+    <form id="lock-form" autocomplete="off">
+      <input id="lock-pass" class="field" type="password" placeholder="Password" autocomplete="current-password" required>
+      <input id="lock-pass2" class="field" type="password" placeholder="Ulang password" autocomplete="new-password" hidden>
+      <button class="btn btn-primary" id="lock-btn" type="submit">Buka</button>
+    </form>
+
+    <p class="err" id="lock-err"></p>
+    <button class="link" id="forgot-btn" type="button">Lupa password?</button>
+    <p class="fine" id="lock-note"></p>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="topbar-txt">
+      <p class="eyebrow" id="today-label">—</p>
+      <h1 id="screen-title">Hari Ini</h1>
+    </div>
+    <button class="icon-btn" id="btn-lock" title="Kunci app" aria-label="Kunci app">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+    </button>
+  </header>
+
+  <main id="main">
+    <!-- ── TODAY ── -->
+    <section data-view="today">
+      <div class="hero card">
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
+            <defs>
+              <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#ffd36e"/>
+                <stop offset="100%" stop-color="#ff9f2e"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring-bg" cx="100" cy="100" r="86"/>
+            <circle class="ring-fg" id="ring-fg" cx="100" cy="100" r="86"/>
+          </svg>
+          <div class="ring-center">
+            <span class="ring-num" id="kcal-left">0</span>
+            <span class="ring-label" id="kcal-label">kalori lagi</span>
+          </div>
+        </div>
+
+        <div class="hero-side">
+          <div class="stat">
+            <span class="stat-k">Dimakan</span>
+            <span class="stat-v" id="stat-eaten">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-k">Sasaran</span>
+            <span class="stat-v" id="stat-target">0</span>
+          </div>
+          <div class="stat" id="stat-burn-wrap">
+            <span class="stat-k">Baki</span>
+            <span class="stat-v" id="stat-left">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="macros card" id="macro-card">
+        <div class="macro" data-m="protein">
+          <div class="macro-head"><span>Protein</span><span id="m-protein-txt">0 / 0 g</span></div>
+          <div class="track"><div class="fill" id="m-protein"></div></div>
+        </div>
+        <div class="macro" data-m="karbo">
+          <div class="macro-head"><span>Karbohidrat</span><span id="m-karbo-txt">0 / 0 g</span></div>
+          <div class="track"><div class="fill" id="m-karbo"></div></div>
+        </div>
+        <div class="macro" data-m="lemak">
+          <div class="macro-head"><span>Lemak</span><span id="m-lemak-txt">0 / 0 g</span></div>
+          <div class="track"><div class="fill" id="m-lemak"></div></div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h2>Log makanan</h2>
+        <span class="pill" id="meal-count">0 hidangan</span>
+      </div>
+
+      <div id="meal-list" class="meal-list"></div>
+      <div id="today-empty" class="empty card" hidden>
+        <div class="empty-emoji">📷</div>
+        <p class="empty-title">Belum ada rekod hari ni</p>
+        <p class="empty-sub">Tekan butang kamera, ambil gambar makanan — aku kira kalori untuk kau.</p>
+        <button class="btn btn-primary" id="empty-snap">Snap makanan pertama</button>
+      </div>
+    </section>
+
+    <!-- ── HISTORY ── -->
+    <section data-view="history" hidden>
+      <div class="card chart-card">
+        <div class="section-head tight">
+          <h2>14 hari lepas</h2>
+          <span class="pill" id="avg-pill">purata —</span>
+        </div>
+        <div class="chart" id="chart"></div>
+        <div class="legend">
+          <span><i class="dot dot-goal"></i> sasaran</span>
+          <span><i class="dot dot-ok"></i> bawah sasaran</span>
+          <span><i class="dot dot-over"></i> lebih</span>
+        </div>
+      </div>
+      <div class="section-head"><h2>Hari</h2></div>
+      <div id="history-list" class="day-list"></div>
+    </section>
+
+    <!-- ── SETTINGS ── -->
+    <section data-view="settings" hidden>
+      <div class="card">
+        <h2 class="card-title">Sambungan AI</h2>
+        <p class="hint">9Router mesti hidup di PC kau. Buka app dari PC guna <code>localhost</code>; dari phone guna tunnel https.</p>
+
+        <label class="lbl" for="set-endpoint">Endpoint</label>
+        <input class="field" id="set-endpoint" type="url" placeholder="http://localhost:20128/v1" spellcheck="false">
+
+        <label class="lbl" for="set-key">API key 9Router</label>
+        <div class="field-row">
+          <input class="field" id="set-key" type="password" placeholder="sk-..." spellcheck="false" autocomplete="off">
+          <button class="btn btn-ghost icon-only" id="btn-eye" type="button" title="Tunjuk key">👁</button>
+        </div>
+
+        <label class="lbl" for="set-model">Model</label>
+        <input class="field" id="set-model" type="text" placeholder="super-free" spellcheck="false">
+        <div class="chip-row" id="model-chips">
+          <button class="chip" data-model="super-free">super-free</button>
+          <button class="chip" data-model="free">free</button>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-test">Uji sambungan</button>
+          <button class="btn btn-ghost" id="btn-save-conn">Simpan</button>
+        </div>
+        <p class="status" id="conn-status"></p>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Sasaran harian</h2>
+        <div class="grid2">
+          <div>
+            <label class="lbl" for="set-kcal">Kalori (kcal)</label>
+            <input class="field" id="set-kcal" type="number" inputmode="numeric" min="500" max="6000">
+          </div>
+          <div>
+            <label class="lbl" for="set-protein">Protein (g)</label>
+            <input class="field" id="set-protein" type="number" inputmode="numeric" min="0" max="400">
+          </div>
+          <div>
+            <label class="lbl" for="set-karbo">Karbo (g)</label>
+            <input class="field" id="set-karbo" type="number" inputmode="numeric" min="0" max="700">
+          </div>
+          <div>
+            <label class="lbl" for="set-lemak">Lemak (g)</label>
+            <input class="field" id="set-lemak" type="number" inputmode="numeric" min="0" max="300">
+          </div>
+        </div>
+        <button class="btn btn-ghost" id="btn-save-targets">Simpan sasaran</button>
+      </div>
+
+      <details class="card details">
+        <summary><h2 class="card-title inline">Kira sasaran automatik</h2></summary>
+        <div class="grid2">
+          <div><label class="lbl" for="cal-berat">Berat (kg)</label><input class="field" id="cal-berat" type="number" inputmode="decimal" placeholder="70"></div>
+          <div><label class="lbl" for="cal-tinggi">Tinggi (cm)</label><input class="field" id="cal-tinggi" type="number" inputmode="decimal" placeholder="170"></div>
+          <div><label class="lbl" for="cal-umur">Umur</label><input class="field" id="cal-umur" type="number" inputmode="numeric" placeholder="30"></div>
+          <div>
+            <label class="lbl" for="cal-jantina">Jantina</label>
+            <select class="field" id="cal-jantina"><option value="m">Lelaki</option><option value="f">Perempuan</option></select>
+          </div>
+          <div class="span2">
+            <label class="lbl" for="cal-aktiviti">Aktiviti</label>
+            <select class="field" id="cal-aktiviti">
+              <option value="1.2">Duduk je (1.2)</option>
+              <option value="1.375" selected>Ringan — 1-3x seminggu (1.375)</option>
+              <option value="1.55">Sederhana — 3-5x seminggu (1.55)</option>
+              <option value="1.725">Aktif — 6-7x seminggu (1.725)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="btn-calc">Kira & isi sasaran</button>
+        <p class="hint" id="calc-out"></p>
+      </details>
+
+      <div class="card">
+        <h2 class="card-title">Data</h2>
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="btn-export">Export JSON</button>
+          <button class="btn btn-ghost" id="btn-import">Import JSON</button>
+        </div>
+        <input type="file" id="import-file" accept="application/json" hidden>
+        <button class="btn btn-danger-outline" id="btn-wipe">Padam semua rekod</button>
+        <p class="hint">Data disimpan dalam browser ni sahaja. Buat export dari masa ke masa sebagai backup.</p>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Keselamatan</h2>
+        <button class="btn btn-ghost" id="btn-changepass">Tukar password</button>
+        <p class="hint warn">Password ni penghadang ringkas (client-side). Ia menghalang orang yang pinjam phone, bukan hacker. Jangan simpan gambar sensitif.</p>
+      </div>
+
+      <details class="card details">
+        <summary><h2 class="card-title inline">Sambung dari phone (GitHub Pages)</h2></summary>
+        <ol class="steps">
+          <li>Buka dashboard 9Router: <code>http://localhost:20128/dashboard</code></li>
+          <li>Pergi ke <b>Tunnel</b> → <b>Enable</b>. Kau akan dapat URL <code>https://…</code></li>
+          <li>Copy URL tu, tambah <code>/v1</code> di hujung, tampal dalam <b>Endpoint</b> di atas.</li>
+          <li>Masukkan API key 9Router kau, tekan <b>Uji sambungan</b>.</li>
+        </ol>
+        <p class="hint">Sebab: app di GitHub Pages guna <code>https://</code>. Browser blok request ke <code>http://localhost</code> atau IP LAN (mixed content + Private Network Access). Tunnel https selesaikan masalah ni.</p>
+      </details>
+
+      <p class="version">KaloriSnap v1.0 · dibuat untuk kau</p>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tab active" data-tab="today">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/></svg>
+      <span>Hari Ini</span>
+    </button>
+    <button class="tab" data-tab="history">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      <span>Sejarah</span>
+    </button>
+    <button class="tab" data-tab="settings">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+      <span>Tetapan</span>
+    </button>
+  </nav>
+
+  <button class="fab fab-sm" id="fab-gallery" aria-label="Pilih dari galeri">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m4 17 4.5-4.5a2 2 0 0 1 2.8 0L20 20"/></svg>
+  </button>
+
+  <button class="fab" id="fab" aria-label="Snap makanan">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h1.5l1.2-1.6A1 1 0 0 1 8.5 4h7a1 1 0 0 1 .8.4L17.5 6H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><circle cx="12" cy="12.5" r="3.4"/></svg>
+  </button>
+</div>
+
+<input type="file" id="file-camera" accept="image/*" capture="environment" hidden>
+<input type="file" id="file-gallery" accept="image/*" hidden>
+
+<!-- ══════════ ANALYZE SHEET ══════════ -->
+<div class="sheet" id="analyze" hidden>
+  <div class="sheet-head">
+    <button class="icon-btn" id="an-close" aria-label="Tutup">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <span class="sheet-title" id="an-title">Analisa</span>
+    <span class="sheet-spacer"></span>
+  </div>
+
+  <div class="sheet-body" id="an-body"></div>
+
+  <div class="sheet-foot" id="an-foot" hidden>
+    <div class="foot-totals">
+      <span class="foot-kcal" id="foot-kcal">0 kcal</span>
+      <span class="foot-macros" id="foot-macros">P 0 · K 0 · L 0</span>
+    </div>
+    <div class="foot-actions">
+      <button class="btn btn-ghost" id="an-add">+ Item</button>
+      <button class="btn btn-primary" id="an-save">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
