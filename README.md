@@ -55,36 +55,76 @@ Tekan **Uji sambungan**. Kalau hijau, terus boleh snap.
 
 Dua cara:
 
-### A. WiFi sama (paling laju, untuk test)
-1. `node serve.mjs` — ia print URL `http://192.168.x.x:5173`
-2. Buka URL tu dalam phone
-3. Endpoint: `http://192.168.x.x:20128/v1`
+### A. Guna di PC (paling laju)
 
-⚠️ XAMPP-style http ni **tak boleh** install PWA penuh (service worker perlu https/localhost), tapi app tetap jalan.
+1. `9router` — dah jalan di `http://localhost:20128`
+2. `node serve.mjs` — buka `http://localhost:5173`
+3. Tetapan: Endpoint `http://localhost:20128/v1`, API key dari dashboard 9Router
+4. Terus jalan — 9Router percaya origin `localhost`, jadi tak perlu proxy/tunnel
 
-### B. GitHub Pages + Tunnel (produk sebenar)
+### B. GitHub Pages + Tunnel (dah deploy)
 
-GitHub Pages guna `https://`. Browser **blok** panggilan dari https ke `http://localhost` atau IP LAN (mixed content + Private Network Access). Jadi kau **wajib** bagi 9Router satu URL https:
+**Live:** https://mdirwansah99.github.io/kalorisnap/
 
-1. Buka `http://localhost:20128/dashboard`
-2. **Tunnel** → **Enable**
-3. Copy URL, contoh `https://abc-def.trycloudflare.com`
-4. Dalam app: Endpoint = `https://abc-def.trycloudflare.com/v1`
-5. API key sama, tekan **Uji sambungan**
+GitHub Pages guna `https://`. Browser **blok** panggilan https → `http://localhost` / IP LAN. Ada satu lagi halangan: **9Router tolak request yang ada header `Origin`** (anti-CSRF), jadi preflight browser dapat 401.
 
-Lepas tu deploy:
+Sebab tu ada **proxy kecil** di PC kau:
+
+```
+phone / GitHub Pages
+      │  https
+      ▼
+Cloudflare Tunnel (trycloudflare.com)
+      │  http (loopback)
+      ▼
+proxy.mjs :5180   ← buang Origin, inject API key sebenar
+      │
+      ▼
+9Router :20128
+```
+
+**Keistimewaan:** API key 9Router **tak pernah** masuk ke phone. App guna *token app* sahaja.
+
+#### Hidupkan (2 klik)
+
+1. Buka folder `C:\Users\mdirw\9router-tunnel`
+2. Double-click **`MULA.bat`**
+3. Ia print:
+
+```
+Endpoint : https://xxxx-xxxx.trycloudflare.com/v1
+API key  : ef3a....
+```
+
+4. Dalam app: **Tetapan → Sambungan AI** → tampal dua nilai tu → **Uji sambungan**.
+
+> ⚠️ URL quick tunnel **bertukar** setiap kali `MULA.bat` dijalankan, dan mati bila PC tidur/restart. Kalau app bagi `Failed to fetch`, jalankan `MULA.bat` semula dan update Endpoint.
+
+#### Nak URL kekal? (Tailscale)
+
+Tailscale kau dah aktif (`laptop-v9vvphfu.tailf4ced9.ts.net`), cuma HTTPS cert belum di-enable:
+
+1. Buka https://login.tailscale.com/admin/dns → **Enable HTTPS Certificates**
+2. `tailscale serve --bg --https=443 http://127.0.0.1:5180`
+3. Endpoint kekal: `https://laptop-v9vvphfu.tailf4ced9.ts.net/v1`
+4. Phone kena ada Tailscale app & login akaun sama
+
+#### Fail dalam `C:\Users\mdirw\9router-tunnel`
+
+| Fail | Fungsi |
+|---|---|
+| `proxy.mjs` | Jambatan ke 9Router + CORS |
+| `config.json` | Token app + API key 9Router (**jangan commit**) |
+| `cloudflared.exe` | Tunnel client |
+| `mula.ps1` / `MULA.bat` | Start semua + print URL |
+
+Deploy (dah dibuat):
 
 ```bash
-git init
-git add .
-git commit -m "KaloriSnap"
-git branch -M main
-git remote add origin https://github.com/<username>/kalorisnap.git
 git push -u origin main
 ```
 
-GitHub → **Settings → Pages → Source: Deploy from a branch → main / (root)**.
-App akan hidup di `https://<username>.github.io/kalorisnap/`.
+GitHub → **Settings → Pages → Deploy from a branch → main / (root)**.
 
 ---
 

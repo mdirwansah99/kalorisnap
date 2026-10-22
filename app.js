@@ -465,7 +465,7 @@ function bindSettings() {
         body: JSON.stringify({
           model: state.settings.model,
           messages: [{ role: 'user', content: 'Balas dengan satu perkataan: OK' }],
-          max_tokens: 60,
+          max_tokens: 300,
           temperature: 0,
         }),
         signal: timeoutSignal(45000),
@@ -475,7 +475,8 @@ function bindSettings() {
       let out2 = '';
       try { out2 = JSON.parse(text).choices?.[0]?.message?.content || ''; } catch { /* ignore */ }
       out.className = 'status ok';
-      out.textContent = `Berjaya (${Math.round(performance.now() - t0)}ms). Model jawab: ${out2.trim().slice(0, 40) || '(kosong)'}`;
+      const answered = out2.trim().slice(0, 40);
+      out.textContent = `Berjaya (${Math.round(performance.now() - t0)}ms). ${answered ? 'Model jawab: ' + answered : 'Model responsif.'}`;
     } catch (err) {
       out.className = 'status bad';
       out.textContent = 'Gagal: ' + (err.message || err);
